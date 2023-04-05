@@ -1,0 +1,121 @@
+package com.android.fiiapp.livedatabuilder
+
+import android.content.Context
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
+import com.android.fiiapp.livedata.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.*
+import kotlinx.serialization.json.Json
+import java.io.InputStreamReader
+import java.lang.Exception
+import java.net.URL
+import java.util.zip.GZIPInputStream
+
+class FilterRange {
+    val min = MutableLiveData<String>("min")
+    val max = MutableLiveData<String>("max")
+    val lower = MutableLiveData<String>("")
+    val higher = MutableLiveData<String>("")
+}
+
+class Filter {
+    val sortBy = MutableLiveData<Int>(R.id.radio_item_sort_by_codigo)
+    val sortOrderAsc = MutableLiveData<Boolean>(true)
+    val favorites = MutableLiveData<Boolean>(false)
+    val sectors = MutableLiveData<MutableSet<Int>>(mutableSetOf<Int>())
+    val pl = FilterRange()
+    val price = FilterRange()
+    val dy = FilterRange()
+    val dy12m = FilterRange()
+    val vpa = FilterRange()
+    val pvpa = FilterRange()
+}
+
+@Serializable
+data class Fii(
+    val CODIGODOFUNDO: String,
+    val SETOR: String,
+    val PRECOATUAL: Double,
+    val LIQUIDEZDIARIA: Double,
+    val DIVIDENDO: Double,
+    val DIVIDENDYIELD: Double,
+    val DY3MACUMULADO: Double,
+    val DY6MACUMULADO: Double,
+    val DY12MACUMULADO: Double,
+    val DY3MMEDIA: Double,
+    val DY6MMEDIA: Double,
+    val DY12MMEDIA: Double,
+    val DYANO: Double,
+    val VARIACAOPRECO: Double,
+    val RENTABPERIODO: Double,
+    val RENTABACUMULADA: Double,
+    val PATRIMONIOLIQ: Double,
+    val VPA: Double,
+    val DYPATRIMONIAL: Double,
+    val VARIACAOPATRIMONIAL: Double,
+    val RENTABPATRNOPERIODO: Double,
+    val RENTABPATRACUMULADA: Double,
+    val VACANCIAFISICA: Double,
+    val VACANCIAFINANCEIRA: Double,
+    val QUANTIDADEATIVOS: Int,
+    val CODIGOEXEC: String
+) {
+    val PVPA: Double
+        get() = this.PRECOATUAL / this.PATRIMONIOLIQ
+}
+
+@Serializable
+data class FiiList(
+    val fiis: List<Fii> = emptyList()
+)
+
+class DefaultDataSource  {
+    var filter = Filter()
+    var fiis: List<Fii> = emptyList()
+    var favorites: MutableList<String> = mutableListOf()
+    var ioDispatcher = Dispatchers.IO
+
+    //    TODO: pegar do banco de dados no inicio
+    fun loadFavorites() {}
+    fun saveFavorites() {
+        val sharedPref = getSharedPreferences("", Context.MODE_PRIVATE)
+        with (sharedPref.edit()) {
+            putString("", "")
+            apply()
+        }
+    }
+    fun addFavorite(code: String) {
+        favorites.add(code)
+        saveFavorites()
+    }
+    fun removeFavorite(code: String) {
+        favorites.remove(code)
+        saveFavorites()
+    }
+
+    //    Get from remote
+    suspend fun getFromRemote() = withContext(ioDispatcher) {
+        try {
+            var text = URL("http://app1-prod.sa-east-1.elasticbeanstalk.com/fii").openConnection()
+            text.setRequestProperty("Authorization", "42399549-e526-48ab-bd46-126f83f04a4c")
+            text.setRequestProperty("Content-Type", "application/json")
+            text.connect()
+            val reader = if (text.contentEncoding == "gzip") {
+                InputStreamReader(GZIPInputStream(text.getInputStream()))
+            } else {
+                InputStreamReader(text.getInputStream())
+            }
+            var s = reader.readText()
+            val format = Json { ignoreUnknownKeys = true }
+            val obj = format.decodeFromString<FiiList>(s)
+            fiis = obj.fiis
+        } catch (e: SerializationException) {
+            Log.e("SERIAL ERROR", e.toString())
+        } catch (e: Exception) {
+            Log.e("REMOTE ERROR", e.toString())
+        }
+    }
+}
+

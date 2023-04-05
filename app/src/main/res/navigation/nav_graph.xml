@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/frag_fiiList">
+
+    <fragment
+        android:id="@+id/frag_filtros"
+        android:name="com.android.fiiapp.filter.FilterFragment"
+        android:label="Filtros"
+        tools:layout="@layout/fragment_filtros" >
+        <action
+            android:id="@+id/action_frag_filtros_to_frag_fiiList"
+            app:destination="@id/frag_fiiList" />
+    </fragment>
+    <fragment
+        android:id="@+id/frag_sortBy"
+        android:name="com.android.fiiapp.sortby.SortByFragment"
+        android:label="Ordenar Por"
+        tools:layout="@layout/fragment_sortby" >
+        <action
+            android:id="@+id/action_frag_sortBy_to_frag_fiiList"
+            app:destination="@id/frag_fiiList" />
+    </fragment>
+    <fragment
+        android:id="@+id/frag_fiiList"
+        android:name="com.android.fiiapp.fiis.FiisFragment"
+        android:label="Fii"
+        tools:layout="@layout/fragment_fii_list">
+        <action
+            android:id="@+id/action_fiiList_to_sortBy"
+            app:destination="@id/frag_sortBy" />
+        <action
+            android:id="@+id/action_fiiList_to_filtros"
+            app:destination="@id/frag_filtros" />
+    </fragment>
+</navigation>

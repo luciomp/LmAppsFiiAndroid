@@ -1,0 +1,34 @@
+<resources>
+    <!-- Geral -->
+    <string name="app_name">Fii</string>
+    <!-- Filtros -->
+    <string name="filter_range_to">a</string>
+    <string name="filter_setores">Setores</string>
+    <!-- Parâmetros do Fii -->
+    <string name="fii_param_codigo">Código</string>
+    <string name="fii_param_setor">Setor</string>
+    <string name="fii_param_pl">Patrimônio Líquido</string>
+    <string name="fii_param_preco">Preço</string>
+    <string name="fii_param_dy">DY</string>
+    <string name="fii_param_dy12m">DY (12M)</string>
+    <string name="fii_param_vpa">VPA</string>
+    <string name="fii_param_pvpa">P/VPA</string>
+    <!-- Menu -->
+    <string name="menu_item_search">Pesquisar</string>
+    <string name="menu_item_filter">Filtrar</string>
+    <string name="menu_item_sortby">Ordenar Por</string>
+    <string name="menu_item_sortAsc">Ordem crescente</string>
+    <string name="menu_item_sortDesc">Ordem decrescente</string>
+    <string name="menu_item_refresh">Atualizar</string>
+    <string name="menu_item_favorites">Favoritos</string>
+    <string name="menu_item_home">Fiis</string>
+    <!-- Setores -->
+    <string name="setor_logistica">Lojística</string>
+    <string name="setor_lajes">Lajes Corporativas</string>
+    <string name="setor_shopping">Shoppings</string>
+    <string name="setor_residencial">Residencial</string>
+    <string name="setor_hospital">Hospital</string>
+    <string name="setor_titulos">Títulos e Valores Mobiliários</string>
+    <string name="setor_hibrido">Híbrido</string>
+    <string name="no_fii">Sem FIIs</string>
+</resources>

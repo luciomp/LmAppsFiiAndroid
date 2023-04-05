@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="viewmodel"
+            type="com.android.fiiapp.sortby.SortByViewModel" />
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.android.fiiapp.sortby.SortBy">
+
+            <RadioGroup
+                android:id="@+id/radio_group_sortby"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:checkedButton="@={viewmodel.sortBy}"
+                >
+
+                <RadioButton
+                    android:id="@+id/radio_item_sort_by_codigo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fii_param_codigo" />
+
+                <RadioButton
+                    android:id="@+id/radio_item_sort_by_setor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fii_param_setor" />
+
+                <RadioButton
+                    android:id="@+id/radio_item_sort_by_pl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fii_param_pl" />
+
+                <RadioButton
+                    android:id="@+id/radio_item_sort_by_preco"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fii_param_preco" />
+
+                <RadioButton
+                    android:id="@+id/radio_item_sort_by_dy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fii_param_dy" />
+
+                <RadioButton
+                    android:id="@+id/radio_item_sort_by_dy12m"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fii_param_dy12m" />
+
+                <RadioButton
+                    android:id="@+id/radio_item_sort_by_vpa"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fii_param_vpa" />
+
+                <RadioButton
+                    android:id="@+id/radio_item_sort_by_pvpa"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fii_param_pvpa" />
+
+            </RadioGroup>
+
+    </FrameLayout>
+
+</layout>

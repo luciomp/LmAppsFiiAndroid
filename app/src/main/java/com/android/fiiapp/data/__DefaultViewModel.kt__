@@ -1,0 +1,176 @@
+package com.android.fiiapp.livedatabuilder
+
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import com.android.fiiapp.livedata.R
+import kotlinx.coroutines.launch
+import java.lang.NumberFormatException
+import kotlin.reflect.KProperty1
+
+class DefaultViewModel(
+    private val dataSource: DefaultDataSource
+) : ViewModel() {
+    // Filters
+    val filter = dataSource.filter
+//    val sortBy = dataSource.filter.sortBy
+//    val sortOrderAsc = dataSource.filter.sortOrderAsc
+//    val favorites = dataSource.filter.favorites
+//    val sectors = dataSource.filter.sectors
+//    val pl = dataSource.filter.pl
+//    val price = dataSource.filter.price
+//    val dy = dataSource.filter.dy
+//    val dy12m = dataSource.filter.dy12m
+//    val vpa = dataSource.filter.vpa
+//    val pvpa = dataSource.filter.pvpa
+    // Fii Lst
+    val fiis = dataSource.fiis
+    val favorites = dataSource.favorites
+
+    fun refresh(navController: NavController) {
+        viewModelScope.launch {
+            dataSource.getFromRemote()
+            navController.navigate(R.id.frag_fiiList)
+        }
+    }
+    fun toggleFilterFavorite() { filter.favorites.value = !filter.favorites.value!! }
+    fun toggleSortOrder() { filter.sortOrderAsc.value = !filter.sortOrderAsc.value!! }
+    fun addRemSector(sector: Int, add: Boolean) {
+        if (add) {
+            var nl = filter.sectors.value?.toMutableSet()
+            nl?.add(sector)
+            filter.sectors.value = nl
+        } else {
+            var nl = filter.sectors.value?.toMutableSet()
+            nl?.remove(sector)
+            filter.sectors.value = nl
+        }
+    }
+    private fun readInstanceProperty(instance: Any, propertyName: String): MutableLiveData<Any?> {
+        var a = instance.javaClass.kotlin.members.first {
+                it.name == propertyName } as KProperty1<Any, *>
+        return a.get(instance) as MutableLiveData<Any?>
+    }
+    private fun fiiPropertyFromId(i: Int?): String {
+        return when (i) {
+            R.id.radio_item_sort_by_codigo -> {
+                "codigo"
+            }
+            R.id.radio_item_sort_by_setor -> {
+                "setor"
+            }
+            R.id.radio_item_sort_by_pl -> {
+                "pl"
+            }
+            R.id.radio_item_sort_by_preco -> {
+                "price"
+            }
+            R.id.radio_item_sort_by_dy -> {
+                "dy"
+            }
+            R.id.radio_item_sort_by_dy12m -> {
+                "dy12m"
+            }
+            R.id.radio_item_sort_by_vpa -> {
+                "vpa"
+            }
+            R.id.radio_item_sort_by_pvpa -> {
+                "pvpa"
+            }
+            else -> "codigo"
+        }
+    }
+    private fun cbIdFromSector(s: String): Int? {
+//        Analisar o que volta do request: contrato backend - frontend
+        return when (s) {
+            "CRI" -> {
+                R.id.frag_filtros_cb_setor_cri
+            }
+            "Híbrido" -> {
+                R.id.frag_filtros_cb_setor_hibrido
+            }
+            "Hospital" -> {
+                R.id.frag_filtros_cb_setor_hospital
+            }
+            "Lajes" -> {
+                R.id.frag_filtros_cb_setor_lajes
+            }
+            "Logística" -> {
+                R.id.frag_filtros_cb_setor_logistica
+            }
+            "Residencial" -> {
+                R.id.frag_filtros_cb_setor_residencial
+            }
+            "Shopping" -> {
+                R.id.frag_filtros_cb_setor_shopping
+            }
+            else -> {
+                null
+            }
+        }
+    }
+    private fun shouldFilterOut(lower: String, higher: String, v: Double): Boolean {
+        return try {
+            (lower.isNotEmpty() && v < lower.toDouble()) || 
+                    (higher.isNotEmpty() && v > higher.toDouble())
+        } catch(e: NumberFormatException) {
+            false
+        }
+    }
+    fun getFilteredSortedFiis(): List<Fii> {
+        val filteredlist = dataSource.fiis.filter {
+            // Sectors
+            if (filter.sectors.value!!.size > 0 &&
+                !filter.sectors.value!!.contains(cbIdFromSector(it.SETOR!!))
+            ) false
+            // PL
+            else if (shouldFilterOut(filter.pl.lower.value!!, filter.pl.higher.value!!, it.PATRIMONIOLIQ)) false
+            // Price
+            else if (shouldFilterOut(filter.price.lower.value!!, filter.price.higher.value!!, it.PRECOATUAL)) false
+            // DY
+            else if (shouldFilterOut(filter.dy.lower.value!!, filter.dy.higher.value!!, it.DIVIDENDYIELD)) false
+            // DY 12 M
+            else if (shouldFilterOut(filter.dy12m.lower.value!!, filter.dy12m.higher.value!!, it.DY12MACUMULADO)) false
+            // VPA
+            else if (shouldFilterOut(filter.vpa.lower.value!!, filter.vpa.higher.value!!, it.VPA)) false
+            // P/VPA
+            else if (shouldFilterOut(filter.pvpa.lower.value!!, filter.pvpa.higher.value!!, it.PVPA)) false
+            // Favorites
+            else if (filter.favorites.value!! && !isFavorite(it.CODIGODOFUNDO)) false
+            else (true)
+        }
+        return if (filter.sortOrderAsc.value == true) {
+            filteredlist.sortedBy {
+                readInstanceProperty(
+                    it, fiiPropertyFromId(filter.sortBy.value)).value.toString()
+            }.toList()
+        } else {
+            filteredlist.sortedByDescending {
+                readInstanceProperty(
+                    it, fiiPropertyFromId(filter.sortBy.value)).value.toString()
+            }.toList()
+        }
+    }
+    fun isFavorite(code: String): Boolean {
+        return code in favorites
+    }
+    fun toggleFavorite(code: String) {
+        if (code in favorites) {
+            dataSource.addFavorite(code)
+        } else {
+            dataSource.removeFavorite(code)
+        }
+    }
+}
+
+object DefaultVMFactory : ViewModelProvider.Factory {
+
+    private val dataSource = DefaultDataSource()
+
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
+        return DefaultViewModel(dataSource) as T
+    }
+}
